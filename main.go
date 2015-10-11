@@ -1,32 +1,53 @@
 package main
 
 import (
-  //"encoding/json"
-  //"net/http"
-  "fmt"
-  "os"
+	"fmt"
+	"net/http"
+	"net/url"
+	"os"
 )
 
 func main() {
-  kong_url := os.Getenv("KONG_URL")
-  upstream_url := os.Getenv("UPSTREAM_URL")
-  request_path := os.Getenv("REQUEST_PATH")
-  api_name := os.Getenv("API_NAME")
-  strip_request_path := os.Getenv("STRIP_REQUEST_PATH")
+	kongUrl, postData := fetchInputs()
 
-  if kong_url == "" || upstream_url == "" || request_path == "" || api_name == "" {
-    fmt.Println("Set env vars")
-    os.Exit(1)
-  }
+	if kongUrl == "" {
+		fmt.Println("Kong URL not set")
+		os.Exit(1)
+	} else if len(postData) == 0 {
+		fmt.Println("Required post data parameters not set")
+		os.Exit(2)
+	}
 
-  if strip_request_path == "" {
-    strip_request_path = "false"
-  }
-
-  printEnvVar("Kong URL", kong_url)
-
+	response, _ := http.PostForm(kongUrl, postData)
+	fmt.Println("Received response code", response.StatusCode)
+	if response.StatusCode != 200 && response.StatusCode != 409 {
+		os.Exit(3)
+	}
 }
 
-func printEnvVar(key string, value string) {
-  fmt.Println(key, "->", value)
+func fetchInputs() (string, url.Values) {
+	kongUrl := os.Getenv("KONG_URL")
+
+	postData := url.Values{}
+	if os.Getenv("UPSTREAM_URL") != "" {
+		postData.Add("upstream_url", os.Getenv("UPSTREAM_URL"))
+	}
+	if os.Getenv("REQUEST_PATH") != "" {
+		postData.Add("request_path", os.Getenv("REQUEST_PATH"))
+	}
+	if os.Getenv("API_NAME") != "" {
+		postData.Add("api_name", os.Getenv("API_NAME"))
+	}
+	if os.Getenv("STRIP_REQUEST_PATH") != "" {
+		postData.Add("strip_request_path", os.Getenv("STRIP_REQUEST_PATH"))
+	}
+
+	printEnvVars(postData)
+	return kongUrl, postData
+}
+
+func printEnvVars(postData url.Values) {
+	for k := range postData {
+		fmt.Println(k, "->", postData[k])
+	}
 }
