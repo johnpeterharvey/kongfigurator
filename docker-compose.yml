@@ -1,0 +1,94 @@
+cassandra:
+  image: cassandra
+  ports:
+    - "9042:9042"
+
+kong:
+  build: .
+  links:
+    - cassandra
+    - beneficiaries
+    - countries
+    - currencies
+    - data-store
+    - fund-sources
+    - quotations
+    - swagger
+  ports:
+    - "8000:8000"
+    - "8001:8001"
+    - "8443:8443"
+    - "8053:8053"
+
+payments-db:
+  image: docker-registry.dev-cluster.digital.travelex.net/travelex-payments-develop-db
+
+swagger:
+  image: payments
+  labels:
+    kong_register: "true"
+    kong_upstream_url: http://swagger:8080/payments/dist/
+    kong_strip_request_path: "true"
+
+beneficiaries:
+  image: beneficiaries
+  links:
+     - payments-db
+  labels:
+    kong_register: "true"
+    kong_upstream_url: http://beneficiaries:8080/payments/
+    kong_version: v1
+
+beneficiaries-migrations:
+  image: beneficiaries-migrations
+  links:
+   - payments-db
+
+countries:
+  image: countries
+  links:
+   - payments-db
+  labels:
+    kong_register: "true"
+    kong_upstream_url: http://countries:8080/payments/
+    kong_version: v1
+
+countries-migrations:
+  image: countries-migrations
+  links:
+   - payments-db
+
+currencies:
+  image: currencies
+  links:
+   - payments-db
+  labels:
+    kong_register: "true"
+    kong_upstream_url: http://currencies:8080/payments/
+    kong_version: v1
+
+currencies-migrations:
+  image: currencies-migrations
+  links:
+   - payments-db
+
+data-store:
+  image: data-store
+  labels:
+    kong_register: "true"
+    kong_upstream_url: http://data-store:8080/payments/
+    kong_version: v1
+
+fund-sources:
+  image: fund-sources
+  labels:
+    kong_register: "true"
+    kong_upstream_url: http://fund-sources:8080/payments/
+    kong_version: v1
+
+quotations:
+  image: quotations
+  labels:
+    kong_register: "true"
+    kong_upstream_url: http://quotations:8080/payments/
+    kong_version: v1
