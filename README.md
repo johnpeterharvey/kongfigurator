@@ -21,3 +21,5 @@ Minimal annotations to the composure are:
     container:
       labels:
         kong_register: "true"
+
+Blocks to allow for Kong to initialize and become reachable. Once the HTTP GET to Kong returns 200, we unblock and POST the new API endpoints configs.
