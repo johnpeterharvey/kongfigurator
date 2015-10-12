@@ -21,7 +21,7 @@ end
 def check_kong_reachable(kong_url)
   while true do
     puts "Trying to reach Kong..."
-    if Net::HTTP.get(kong_url).is_a?(Net::HTTPSuccess)
+    if Net::HTTP.get_response(kong_url).is_a?(Net::HTTPSuccess)
       break
     end
     sleep(5)
@@ -31,13 +31,15 @@ end
 def register_apis(kong_url, composure)
   composure.each do |container|
     if !container[1].has_key? 'labels'
-      if !container[1]['labels']['kong_register'] == 'true'
-        next
-      end
+      next
+    end
+    if !container[1]['labels']['kong_register'] == 'true'
+      puts "Container #{container[0]} has kong registration falsey"
+      next
     end
 
     puts "Container #{container[0]} is Kong enabled"
-    konfig = container[1]['labels'].reject {|key, value| !key.starts_with 'kong_'}
+    konfig = container[1]['labels'].reject {|key, value| !key.start_with? 'kong_'}
 
     form_data = {
       'upstream_url' => konfig['kong_upstream_url'],
