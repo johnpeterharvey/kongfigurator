@@ -1,4 +1,4 @@
-# kongtroller
+# kongfigurator
 
 Set KONG_URL to Kong API url e.g.
   
