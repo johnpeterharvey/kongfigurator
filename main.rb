@@ -21,8 +21,12 @@ end
 def check_kong_reachable(kong_url)
   while true do
     puts "Trying to reach Kong..."
-    if Net::HTTP.get_response(kong_url).is_a?(Net::HTTPSuccess)
-      break
+    begin
+      if Net::HTTP.get_response(kong_url).is_a?(Net::HTTPSuccess)
+        break
+      end
+    rescue StandardError
+      puts "Caught exception when trying to reach Kong, retrying"
     end
     sleep(5)
   end
