@@ -1,5 +1,9 @@
 # kongfigurator
 
+[![Build Status](https://travis-ci.org/johnpeterharvey/kongfigurator.svg?branch=master)](https://travis-ci.org/johnpeterharvey/kongfigurator)
+[![Code Climate](https://codeclimate.com/github/johnpeterharvey/kongfigurator/badges/gpa.svg)](https://codeclimate.com/github/johnpeterharvey/kongfigurator)
+[![Test Coverage](https://codeclimate.com/github/johnpeterharvey/kongfigurator/badges/coverage.svg)](https://codeclimate.com/github/johnpeterharvey/kongfigurator/coverage)
+
 Set KONG_URL to Kong API url e.g.
   
     export KONG_URL=http://192.168.99.100:8001/apis
