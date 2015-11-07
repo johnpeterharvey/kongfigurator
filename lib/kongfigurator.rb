@@ -3,6 +3,9 @@ require 'yaml'
 
 class Kongfigurator
 
+  MAX_CONNECTION_ATTEMPTS = 120
+  CONNECTION_DELAY        = 5
+
   def get_kong_url
     if !ENV.has_key? 'KONG_URL'
       puts 'Set KONG_URL environment variable!'
@@ -12,25 +15,32 @@ class Kongfigurator
   end
 
   def get_composure
-    composure_file = File.new('docker-compose.yml')
-    if composure_file.nil?
+    if !File.exist? 'docker-compose.yml'
       puts 'Add docker-compose.yml'
       exit 2
     end
-    YAML.load(composure_file)
+    YAML.load(File.new('docker-compose.yml'))
   end
 
   def check_kong_reachable(kong_url)
-    while true do
+    attempts = 0
+    #Up to 10 minutes of attempts before failing
+    while attempts < MAX_CONNECTION_ATTEMPTS do
       puts "Trying to reach Kong..."
       begin
-        if Net::HTTP.get_response(kong_url).is_a?(Net::HTTPSuccess)
+        if Net::HTTP.get_response(kong_url).is_a? Net::HTTPSuccess
           break
         end
       rescue StandardError
         puts "Caught exception when trying to reach Kong, retrying"
       end
-      sleep(5)
+      attempts += 1
+      sleep(CONNECTION_DELAY)
+    end
+
+    if attempts >= MAX_CONNECTION_ATTEMPTS
+      puts "Failed to connect to Kong after #{MAX_CONNECTION_ATTEMPTS} attempts"
+      exit 3
     end
   end
 
@@ -56,7 +66,6 @@ class Kongfigurator
         form_data['strip_request_path'] = konfig['kong_strip_request_path']
       end
 
-      puts "\tSending registration data #{form_data}"
       result = Net::HTTP.post_form(kong_url, form_data)
       puts "\tRegistering #{container[0]} got return code #{result}"
     end
