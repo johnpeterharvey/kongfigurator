@@ -4,7 +4,7 @@ require 'yaml'
 class Kongfigurator
 
   def get_kong_url
-    if !ENV.has_key? 'KONG_URL' || ENV.fetch('KONG_URL').is_empty?
+    if !ENV.has_key? 'KONG_URL'
       puts 'Set KONG_URL environment variable!'
       exit 1
     end
@@ -74,4 +74,4 @@ class Kongfigurator
   end
 end
 
-Kongfigurator.new.main
+#Kongfigurator.new.main
