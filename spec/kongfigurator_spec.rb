@@ -1,4 +1,5 @@
 require 'kongfigurator'
+require 'climate_control'
 
 RSpec.describe Kongfigurator do
   describe "#get_kong_url" do
