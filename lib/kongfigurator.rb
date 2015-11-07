@@ -55,7 +55,7 @@ class Kongfigurator
       end
 
       puts "Container #{container[0]} is Kong enabled"
-      konfig = container[1]['labels'].reject {|key, value| !key.start_with? 'kong_'}
+      konfig = container[1]['labels'].reject {|key, _| !key.start_with? 'kong_'}
 
       form_data = {
         'upstream_url' => konfig['kong_upstream_url'],
@@ -82,5 +82,3 @@ class Kongfigurator
     register_apis(kong_url, composure)
   end
 end
-
-#Kongfigurator.new.main
