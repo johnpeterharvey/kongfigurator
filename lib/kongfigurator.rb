@@ -79,6 +79,7 @@ class Kongfigurator
     puts "Read Kong URL #{kong_url}"
 
     composure = get_composure
+    puts "Read docker compose file"
 
     check_kong_reachable(kong_url)
 
