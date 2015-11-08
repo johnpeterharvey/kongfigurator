@@ -36,6 +36,12 @@ RSpec.describe Kongfigurator do
 
     let(:composure) { 'docker-compose.yml' }
 
+    around do |example|
+      ClimateControl.modify KONG_DOCKER_CONFIG: composure do
+        example.call
+      end
+    end
+
     before do
       expect(File).to receive(:exist?).with(composure).and_return(file_exists)
     end
@@ -46,7 +52,7 @@ RSpec.describe Kongfigurator do
       it "should return an error code" do
         expect { subject }.to raise_error { |error|
           expect(error).to be_a(SystemExit)
-          expect(error.status).to eq(2)
+          expect(error.status).to eq(3)
         }
       end
     end
@@ -77,7 +83,7 @@ RSpec.describe Kongfigurator do
       it "should return an error code" do
         expect { subject }.to raise_error { |error|
           expect(error).to be_a(SystemExit)
-          expect(error.status).to eq(3)
+          expect(error.status).to eq(4)
         }
       end
     end
