@@ -1,0 +1,7 @@
+example_api:
+  key: value
+  labels:
+    kong:
+      - upstream_url: http://api:8080/endpoint/
+        version: v1
+        strip_request_path: "true"

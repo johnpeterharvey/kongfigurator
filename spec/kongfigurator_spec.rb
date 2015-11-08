@@ -36,12 +36,14 @@ RSpec.describe Kongfigurator do
 
     let(:composure) { 'docker-compose.yml' }
 
-    before do
-      expect(File).to receive(:exist?).with(composure).and_return(file_exists)
+    around do |example|
+      ClimateControl.modify KONG_DOCKER_CONFIG: composure do
+        example.call
+      end
     end
 
-    context "when file is missing" do
-      let(:file_exists) { false }
+    context "when no composure url is set" do
+      let(:composure) { nil }
 
       it "should return an error code" do
         expect { subject }.to raise_error { |error|
@@ -51,11 +53,24 @@ RSpec.describe Kongfigurator do
       end
     end
 
+    context "when file is missing" do
+      let(:file_exists) { false }
+
+      it "should return an error code" do
+        expect(File).to receive(:exist?).with(composure).and_return(file_exists)
+        expect { subject }.to raise_error { |error|
+          expect(error).to be_a(SystemExit)
+          expect(error.status).to eq(3)
+        }
+      end
+    end
+
     context "when file is found" do
       let(:file_exists) { true }
 
       it "should return parsed YAML" do
-        expect(File).to receive(:new).with(composure).and_return(File.new('spec/example.yml'))
+        expect(File).to receive(:exist?).with(composure).and_return(file_exists)
+        expect(File).to receive(:new).with(composure).and_return(File.new('spec/fixtures/example.yml'))
         expect(subject).not_to be_empty
       end
     end
@@ -77,7 +92,7 @@ RSpec.describe Kongfigurator do
       it "should return an error code" do
         expect { subject }.to raise_error { |error|
           expect(error).to be_a(SystemExit)
-          expect(error.status).to eq(3)
+          expect(error.status).to eq(4)
         }
       end
     end
@@ -86,6 +101,68 @@ RSpec.describe Kongfigurator do
       let(:http_response) { Net::HTTPSuccess.new(1.0, 200, "OK") }
 
       it "should return with no error" do
+        expect { subject }.not_to raise_error
+      end
+    end
+  end
+
+  describe "#register_apis" do
+    let(:kong_url) { 'http://example.com' }
+    subject { described_class.new.register_apis(kong_url, composure) }
+
+    context "when we pass in an empty YAML file" do
+      let(:composure) { {} }
+
+      it "should do nothing" do
+        expect(Net::HTTP).to_not receive(:post_form).with(kong_url, anything)
+        expect { subject }.not_to raise_error
+      end
+    end
+
+    context "when we pass in a YAML file with no labels section" do
+      let(:composure) { YAML.load(File.new('spec/fixtures/config_with_no_labels_section.yml')) }
+
+      it "should do nothing" do
+        expect(Net::HTTP).to_not receive(:post_form).with(kong_url, anything)
+        expect { subject }.not_to raise_error
+      end
+    end
+
+    context "when we pass in a YAML file with labels but no kong section" do
+      let(:composure) { YAML.load(File.new('spec/fixtures/config_with_no_kong_section.yml')) }
+
+      it "should do nothing" do
+        expect(Net::HTTP).to_not receive(:post_form).with(kong_url, anything)
+        expect { subject }.not_to raise_error
+      end
+    end
+
+    context "when we pass in a YAML file with a basic config" do
+      let(:composure) { YAML.load(File.new('spec/fixtures/config_with_basic_config.yml')) }
+      let(:expected_data) { { 'upstream_url' => 'http://api:8080/endpoint/', 'request_path' => '/example_api', 'name' => 'example_api' } }
+
+      it "should register the basic api with Kong" do
+        expect(Net::HTTP).to receive(:post_form).with(kong_url, expected_data)
+        expect { subject }.not_to raise_error
+      end
+    end
+
+    context "when we pass in a YAML file with a basic versioned config" do
+      let(:composure) { YAML.load(File.new('spec/fixtures/config_with_basic_versioned_config.yml')) }
+      let(:expected_data) { { 'upstream_url' => 'http://api:8080/endpoint/', 'request_path' => '/v1/example_api', 'name' => 'example_api' } }
+
+      it "should register the basic api with Kong" do
+        expect(Net::HTTP).to receive(:post_form).with(kong_url, expected_data)
+        expect { subject }.not_to raise_error
+      end
+    end
+
+    context "when we pass in a YAML file with a basic versioned config with strip path set" do
+      let(:composure) { YAML.load(File.new('spec/fixtures/config_with_basic_versioned_config_with_strip_path.yml')) }
+      let(:expected_data) { { 'upstream_url' => 'http://api:8080/endpoint/', 'request_path' => '/v1/example_api', 'name' => 'example_api', 'strip_request_path' => 'true' } }
+
+      it "should register the basic api with Kong" do
+        expect(Net::HTTP).to receive(:post_form).with(kong_url, expected_data)
         expect { subject }.not_to raise_error
       end
     end

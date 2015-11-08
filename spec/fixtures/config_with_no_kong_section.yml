@@ -1,0 +1,4 @@
+config:
+  key: value
+  labels:
+    test: value
