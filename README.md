@@ -28,7 +28,7 @@ Minimal annotations to the composure are:
 
     container:
       labels:
-      kong:
-        - upstream_url: http://api:8080/endpoint/
+        kong:
+          - upstream_url: http://api:8080/endpoint/
 
 Blocks to allow for Kong to initialize and become reachable. Once the HTTP GET to Kong returns 200, we unblock and POST the new API endpoints configs.
