@@ -7,7 +7,7 @@ class Kongfigurator
   CONNECTION_DELAY        = 5
 
   def get_kong_url
-    if !ENV.has_key? 'KONG_URL'
+    if ENV['KONG_URL'] == nil
       puts 'Set KONG_URL environment variable!'
       exit 1
     end
@@ -15,7 +15,7 @@ class Kongfigurator
   end
 
   def get_composure
-    if !ENV.has_key? 'KONG_DOCKER_CONFIG'
+    if ENV['KONG_DOCKER_CONFIG'] == nil
       puts 'Set KONG_DOCKER_CONFIG environment variable!'
       exit 2
     end
@@ -65,7 +65,7 @@ class Kongfigurator
         }
 
         if registration_data.has_key? 'strip_request_path'
-          form_data['strip_request_path'] = konfig['strip_request_path']
+          form_data['strip_request_path'] = registration_data['strip_request_path']
         end
 
         result = Net::HTTP.post_form(kong_url, form_data)
