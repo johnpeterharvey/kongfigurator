@@ -81,27 +81,45 @@ RSpec.describe Kongfigurator do
     subject { described_class.new.check_kong_reachable(kong_url) }
 
     before do
-      expect(Net::HTTP).to receive(:get_response).with(kong_url).and_return(http_response)
       stub_const("Kongfigurator::MAX_CONNECTION_ATTEMPTS", 1)
       stub_const("Kongfigurator::CONNECTION_DELAY", 0)
     end
 
-    context "when we fail to connect" do
-      let(:http_response) { Net::HTTPServiceUnavailable }
+    context "http get doesn't raise an exception" do
+      before do
+        expect(Net::HTTP).to receive(:get_response).with(kong_url).and_return(http_response)
+      end
 
-      it "should return an error code" do
+      context "when we fail to connect" do
+        let(:http_response) { Net::HTTPServiceUnavailable }
+
+        it "should return an error code" do
+          expect { subject }.to raise_error { |error|
+            expect(error).to be_a(SystemExit)
+            expect(error.status).to eq(4)
+          }
+        end
+      end
+
+      context "when we succeed in connecting" do
+        let(:http_response) { Net::HTTPSuccess.new(1.0, 200, "OK") }
+
+        it "should return with no error" do
+          expect { subject }.not_to raise_error
+        end
+      end
+    end
+
+    context "http get raises exception" do
+      before do
+        expect(Net::HTTP).to receive(:get_response).with(kong_url).and_raise(StandardError)
+      end
+
+      it "should handle the exceptions and return the correct error code" do
         expect { subject }.to raise_error { |error|
           expect(error).to be_a(SystemExit)
           expect(error.status).to eq(4)
         }
-      end
-    end
-
-    context "when we succeed in connecting" do
-      let(:http_response) { Net::HTTPSuccess.new(1.0, 200, "OK") }
-
-      it "should return with no error" do
-        expect { subject }.not_to raise_error
       end
     end
   end
