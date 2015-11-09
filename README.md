@@ -17,18 +17,17 @@ Run with the docker compose file in the same directory
 docker-compose.yml needs Kong annotations e.g.
 
     container:
+      container_name: container
       labels:
-        kong:
-          - upstream_url: http://api:8080/endpoint/
-            version: v1
-            strip_request_path: "true"
+        kong_upstream_url: http://api:8080/endpoint/
+        kong_version: v1
+        kong_strip_request_path: "true"
 
 
 Minimal annotations to the composure are:
 
     container:
       labels:
-      kong:
-        - upstream_url: http://api:8080/endpoint/
+        kong_upstream_url: http://api:8080/endpoint/
 
 Blocks to allow for Kong to initialize and become reachable. Once the HTTP GET to Kong returns 200, we unblock and POST the new API endpoints configs.
