@@ -184,5 +184,15 @@ RSpec.describe Kongfigurator do
         expect { subject }.not_to raise_error
       end
     end
+
+    context "when we pass in a YAML file with an overridden container name" do
+      let(:composure) { YAML.load(File.new('spec/fixtures/config_with_overridden_container_name.yml')) }
+      let(:expected_data) { { 'upstream_url' => 'http://api:8080/endpoint/', 'request_path' => '/other_container_name', 'name' => 'other_container_name' } }
+
+      it "should register with Kong with the correct container name" do
+        expect(Net::HTTP).to receive(:post_form).with(kong_url, expected_data)
+        expect { subject }.not_to raise_error
+      end
+    end
   end
 end

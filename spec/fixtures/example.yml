@@ -4,6 +4,5 @@ example-image:
   expose:
     - "8080"
   labels:
-    kong_register: "true"
     kong_upstream_url: http://example-image:8080/api/path/
     kong_strip_request_path: "true"

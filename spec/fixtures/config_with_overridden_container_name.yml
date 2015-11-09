@@ -1,6 +1,5 @@
 example_api:
+  container_name: other_container_name
   key: value
   labels:
     kong_upstream_url: http://api:8080/endpoint/
-    kong_version: v1
-    kong_strip_request_path: "true"

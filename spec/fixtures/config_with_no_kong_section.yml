@@ -2,3 +2,4 @@ config:
   key: value
   labels:
     test: value
+    other: othervalue
