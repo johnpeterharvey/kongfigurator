@@ -1,0 +1,6 @@
+config:
+  key: value
+  labels:
+    test: value
+    kong_upstream_url: http://example.com
+    other: othervalue

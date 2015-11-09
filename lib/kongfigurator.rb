@@ -52,7 +52,7 @@ class Kongfigurator
 
   def register_apis(kong_url, composure)
     composure.select { |_, service_config|
-      service_config.has_key?('labels') && service_config['labels'].has_key?('kong_upstream_url')
+      service_config.has_key?('labels') && service_config['labels'].has_key?('kong_upstream_url') && service_config['labels'].has_key?('kong_request_path')
     }.each do |service_name, service_config|
       service_name = service_config['container_name'] || service_name
       label_config = service_config['labels']
@@ -60,7 +60,7 @@ class Kongfigurator
       puts "Container #{service_name} is Kong enabled"
       form_data = {
         'upstream_url' => label_config['kong_upstream_url'],
-        'request_path' => label_config.has_key?('kong_version') ? "/#{label_config['kong_version']}/#{service_name}" : "/#{service_name}",
+        'request_path' => label_config['kong_request_path'],
         'name' => service_name
       }
 
