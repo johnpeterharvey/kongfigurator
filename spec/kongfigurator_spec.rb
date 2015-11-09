@@ -146,8 +146,26 @@ RSpec.describe Kongfigurator do
       end
     end
 
-    context "when we pass in a YAML file with labels but no kong section" do
-      let(:composure) { YAML.load(File.new('spec/fixtures/config_with_no_kong_section.yml')) }
+    context "when we pass in a YAML file with labels but no upstream url or request path" do
+      let(:composure) { YAML.load(File.new('spec/fixtures/config_with_no_upstream_url_or_request_path.yml')) }
+
+      it "should do nothing" do
+        expect(Net::HTTP).to_not receive(:post_form).with(kong_url, anything)
+        expect { subject }.not_to raise_error
+      end
+    end
+
+    context "when we pass in a YAML file with labels and an upstream url but no request path" do
+      let(:composure) { YAML.load(File.new('spec/fixtures/config_with_upstream_url_but_no_request_path.yml')) }
+
+      it "should do nothing" do
+        expect(Net::HTTP).to_not receive(:post_form).with(kong_url, anything)
+        expect { subject }.not_to raise_error
+      end
+    end
+
+    context "when we pass in a YAML file with labels and a request path but no upstream url" do
+      let(:composure) { YAML.load(File.new('spec/fixtures/config_with_request_path_but_no_upstream_url.yml')) }
 
       it "should do nothing" do
         expect(Net::HTTP).to_not receive(:post_form).with(kong_url, anything)
@@ -165,9 +183,9 @@ RSpec.describe Kongfigurator do
       end
     end
 
-    context "when we pass in a YAML file with a basic versioned config" do
-      let(:composure) { YAML.load(File.new('spec/fixtures/config_with_basic_versioned_config.yml')) }
-      let(:expected_data) { { 'upstream_url' => 'http://api:8080/endpoint/', 'request_path' => '/v1/example_api', 'name' => 'example_api' } }
+    context "when we pass in a YAML file with a basic config with strip path set" do
+      let(:composure) { YAML.load(File.new('spec/fixtures/config_with_strip_path.yml')) }
+      let(:expected_data) { { 'upstream_url' => 'http://api:8080/endpoint/', 'request_path' => '/v1/example_api', 'name' => 'example_api', 'strip_request_path' => 'true' } }
 
       it "should register the basic api with Kong" do
         expect(Net::HTTP).to receive(:post_form).with(kong_url, expected_data)
@@ -175,11 +193,11 @@ RSpec.describe Kongfigurator do
       end
     end
 
-    context "when we pass in a YAML file with a basic versioned config with strip path set" do
-      let(:composure) { YAML.load(File.new('spec/fixtures/config_with_basic_versioned_config_with_strip_path.yml')) }
-      let(:expected_data) { { 'upstream_url' => 'http://api:8080/endpoint/', 'request_path' => '/v1/example_api', 'name' => 'example_api', 'strip_request_path' => 'true' } }
+    context "when we pass in a YAML file with an overridden container name" do
+      let(:composure) { YAML.load(File.new('spec/fixtures/config_with_overridden_container_name.yml')) }
+      let(:expected_data) { { 'upstream_url' => 'http://api:8080/endpoint/', 'request_path' => '/example_api', 'name' => 'other_container_name' } }
 
-      it "should register the basic api with Kong" do
+      it "should register with Kong with the correct container name" do
         expect(Net::HTTP).to receive(:post_form).with(kong_url, expected_data)
         expect { subject }.not_to raise_error
       end

@@ -2,4 +2,5 @@ example_api:
   key: value
   labels:
     kong_upstream_url: http://api:8080/endpoint/
-    kong_request_path: /example_api
+    kong_request_path: /v1/example_api
+    kong_strip_request_path: "true"

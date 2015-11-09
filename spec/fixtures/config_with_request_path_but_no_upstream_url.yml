@@ -1,0 +1,6 @@
+config:
+  key: value
+  labels:
+    test: value
+    kong_request_path: /example_api
+    other: othervalue

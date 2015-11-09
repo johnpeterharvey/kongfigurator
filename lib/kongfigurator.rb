@@ -51,26 +51,25 @@ class Kongfigurator
   end
 
   def register_apis(kong_url, composure)
-    composure.each do |service_name, service_config|
-      if !service_config.has_key?('labels') || !service_config['labels'].has_key?('kong')
-        next
-      end
+    composure.select { |_, service_config|
+      service_config.has_key?('labels') && service_config['labels'].has_key?('kong_upstream_url') && service_config['labels'].has_key?('kong_request_path')
+    }.each do |service_name, service_config|
+      service_name = service_config['container_name'] || service_name
+      label_config = service_config['labels']
 
       puts "Container #{service_name} is Kong enabled"
-      service_config['labels']['kong'].each do |registration_data|
-        form_data = {
-          'upstream_url' => registration_data['upstream_url'],
-          'request_path' => registration_data.has_key?('version') ? "/#{registration_data['version']}/#{service_name}" : "/#{service_name}",
-          'name' => service_name
-        }
+      form_data = {
+        'upstream_url' => label_config['kong_upstream_url'],
+        'request_path' => label_config['kong_request_path'],
+        'name' => service_name
+      }
 
-        if registration_data.has_key? 'strip_request_path'
-          form_data['strip_request_path'] = registration_data['strip_request_path']
-        end
-
-        result = Net::HTTP.post_form(kong_url, form_data)
-        puts "\tRegistering #{service_name} with url #{form_data['upstream_url']} got return code #{result}"
+      if label_config.has_key? 'kong_strip_request_path'
+        form_data['strip_request_path'] = label_config['kong_strip_request_path']
       end
+
+      result = Net::HTTP.post_form(kong_url, form_data)
+      puts "\tRegistering #{service_name} with url #{form_data['upstream_url']} got return code #{result}"
     end
   end
 
